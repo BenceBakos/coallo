@@ -1,4 +1,4 @@
-_nothing but the name of the project ;)_
+_nothing but the name of the project_
 #FileSystemExample
 
 _list items: <quantyty> <Type>_
