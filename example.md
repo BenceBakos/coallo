@@ -1,13 +1,13 @@
 _nothing but the name of the project_
 
-#FileSystemExample
+# FileSystemExample
 
 _list items: <quantyty> <Type>_
 _type relations does not have any name_
-##FileSystem:
+## FileSystem:
  - 10 File
 
-##File:
+## File:
  - one Name
  - some Meta
  - some Tag
