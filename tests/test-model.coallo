@@ -1,0 +1,18 @@
+### Number
+
+comment inbetween
+
+### Int extends Number
+
+### String
+
+## **Int,Int** n_plus_n **Int**
+
+##printAnotherThing
+
+## sum_3_n **Int**
+ - getNumbers **Int,Int,Int** get numbers from standard input
+ - **Int,Int** n_plus_n **Int** 
+ - **Int,Int** n_plus_n **Int**
+ - printSomethingElse
+ - printAnotherThing

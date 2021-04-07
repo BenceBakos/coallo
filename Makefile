@@ -4,4 +4,4 @@ init:
 test:
 	python3 -m unittest
 run:
-	python3 coallo/core.py
+	python3 main.py
