@@ -22,3 +22,4 @@ venv/
 htmlcov
 .eggs
 coverage.xml
+conf.json

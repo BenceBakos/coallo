@@ -10,7 +10,9 @@ import json
 	"json-visualizer-output": false	
 }
 """
-config = json.loads(Path('conf.json').read_text())
+try{
+	config = json.loads(Path('conf.json').read_text())
+}catche
 
 
 # cli arguments(overwrite config)
@@ -26,6 +28,14 @@ config = json.loads(Path('conf.json').read_text())
 import sys
 args = sys.argv
 del args[0]
+
+modelPath = args[0]
+if Path
+
+
+for arg in args:
+
+
 
 # read model text
 import coallo.parse
