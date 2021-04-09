@@ -1,1 +1,2 @@
-import coallo.core
+from coallo.core import main
+main()

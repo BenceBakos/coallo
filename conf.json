@@ -1,8 +1,0 @@
-{
-	"visualizer": "default", 
-	"json_error_output": true,		 
-	"json_warning_output": true,		 
-	"json_visualizer_output": false,
-	"only_parse": false,
-	"only_warnings": false
-}

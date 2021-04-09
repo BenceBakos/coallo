@@ -1,259 +1,91 @@
 
 
+template_branch = lambda name = "",children = [],root = False:{"name":name,"children":children,"root":root}
 
-class Model:
-	def __init__(self):
-		self.elements_cicrle = {}
-		self.elements_type = {}
+def find_branch_children(branches):
 
-		self.last_circle_key = False
-		
-		self.last_method_key = False
+	branch_names = []
+	for (name,br) in branches.items():
+		if br['root']:continue
 
-		self.reserved_keywords = ['extends']
+		branch_names.append(name)
 
+	def recursive_find_children(children):
+		for i in range(0,len(children)):
+			ch = children[i]
+			if ch['name'] in branch_names:
+				children[i] = branches[ch['name']]
+				children[i]['children'] = recursive_find_children(children[i]['children'])
 
-class Process_result:
-	def __init__(self,model,errors):
-		self.model = model
-		self.errors = errors
+		return children
 
+	for (name,br) in branches.items():
+		try:
+			branches[name]['children'] = recursive_find_children(branches[name]['children'])
 
-class Line_processor:
-	def __init__(self, processor_method,indicator):
-		self.processor_method = processor_method	
-		self.indicator = indicator
+		except RecursionError as re:
+			print('Recursion error!')
+			print(re.args[0])
+			exit()
 
-	def process(self,line,line_number,model):
+	return branches
 
-		def line_without_whitespace(str):
-			return str.replace(' ','').replace('\t','')
+def get_name(line,indicator):
+	return " ".join(line.replace(indicator,'',1).split()).split(' ')[0]
 
-		if isinstance(self.indicator,list):
-			is_indicator = False
+def parse_file(file_text):
 
-			for ind in self.indicator:
-				is_indicator = is_indicator or line_without_whitespace(line).startswith(ind)
+	elements = {"branches":{}}
 
-			if not is_indicator:
-				return False
-		else:
-			if not line_without_whitespace(line).startswith(self.indicator):
-				return False
-		
-		return self.processor_method(line,line_number,model)
+	lines = file_text.split('\n')
 
+	active_branch = False
 
-# header 3
+	# get elements
 
-class Element_type:
-	def __init__(self,name,parent=False):
-		self.name = name
-		self.parent = parent
+	for line in lines:
 
-def process_type(line,line_number,model):
-	line = line.replace("###","")
-	line_splitted = line.split(" ")
+		line_without_whitespace = line.replace(' ','').replace('\t','')
 
-	words = []
-	
-	# filter empty string
-	for word in line_splitted:
-		if word == "" or word == "\t":continue
+		# root branch
+		if line_without_whitespace.startswith('##') and not line_without_whitespace.startswith('###'):
+			name = get_name(line,'##')
+			elements['branches'][name] = template_branch(name,[],True)
 
-		words.append(word)
+			active_branch = name
 
-	if words[0] in model.elements_type:
-		return Process_result(model,[[line_number,"Type already exists!"]])
-	
-	if  not len(words) == 1 and not len(words) == 3:
-		return Process_result(model,[[line_number,"Wrong number of keywords!"]])	
-	
-	if len(words) == 3:
-		if words[1] != "extends":
-			return Process_result(model,[[line_number,"Wrong keyword order!"]])
+			continue
 
-		if words[0] == words[2]:
-			return Process_result(model,[[line_number,"Type can't be it's own parent!"]])			
+		# branch
+		if line_without_whitespace.startswith('###'):
+			name = get_name(line,'###')
 
-		if words[0] in model.reserved_keywords:
-			return Process_result(model,[[line_number,"Type name reserved!"]])			
+			elements['branches'][name] = template_branch(name,[])
 
-		model.elements_type[words[0]] = Element_type(words[0],words[2])
-		model.reserved_keywords.append(words[0])
+			active_branch = name
 
-	if len(words) == 1:
+			continue
 
-		if words[0] in model.reserved_keywords:
-			return Process_result(model,[[line_number,"Type name reserved!"]])			
-
-		model.elements_type[words[0]] = Element_type(words[0])
-		model.reserved_keywords.append(words[0])
-
-	return Process_result(model,[])
-
-
-
-# header 2
-
-class Element_circle:
-	def __init__(self,name,in_types = False,out_types = False, methods=False):
-		self.name = name
-
-		if out_types:
-			self.out_types = out_types
-		else:
-			self.out_types = []
-
-		if in_types:
-			self.in_types = in_types
-		else:
-			self.in_types = []
-
-		if (methods):
-			self.methods = methods
-		else:
-			self.methods = []
-
-def process_circle(line,line_number,model):
-	
-	is_circle = False
-	if "## " in line:
-		is_circle = True
-
-	line = line.replace("##","")
-	line_splitted = line.split(" ")
-
-	words = []
-	
-	# filter empty string
-	for word in line_splitted:
-		if word == "" or word == "\t":continue
-
-		words.append(word)
-
-	types_in = []
-	types_out = []
-	name = ""
-
-	if len(words) == 0 or len(words) > 3:
-		return Process_result(model,[[line_number,"Wrong number of keywords!"]])
-
-	if len(words) == 1 and words[0] in model.reserved_keywords:
-		return Process_result(model,[[line_number,"Circle name reserved!"]])
-
-	if len(words) == 2 and (not words[0].startswith('**') or not words[1].startswith('**')) and\
-		(not words[0].endswith('**') or not words[1].endswith('**')):
-
-		return Process_result(model,[[line_number,"Invalid type declaration!"]])
-
-	if len(words) == 3 and not words[0].startswith('**') and not words[2].startswith('**') and\
-		not words[0].endswith('**') and not words[2].endswith('**'):
-
-		return Process_result(model,[[line_number,"Invalid type declaration!"]])
-
-	if (len(words) == 2 and words[0].startswith('**')) or len(words) == 3:
-
-		types_in_str = words[0].replace('*','').split(',')
-
-		for type_in_str in types_in_str:
-			if not type_in_str in model.elements_type:
-				return Process_result(model,[[line_number,"Input type does not exists!"]])
-
-			types_in.append(model.elements_type[type_in_str])
-
-	if (len(words) == 2 and words[1].startswith('**')) or len(words) == 3:
-		types_out_str = ""
-
-		if len(words) == 2:
-			types_out_str = words[1].replace('*','').split(',')
-		else:
-			types_out_str = words[2].replace('*','').split(',')
-
-		for type_out_str in types_out_str:
-			if not type_out_str in model.elements_type:
-				return Process_result(model,[[line_number,"Output type does not exists!"]])
-
-			types_in.append(model.elements_type[type_out_str])
-
-	if len(words) == 1:
-		name = words[0]
-
-	if len(words) == 2:
-		if words[0].startswith('**'):
-			name = words[1]
-		else:
-			name = words[0]
-
-	if len(words) == 3:
-		name = words[1]
-
-	model.elements_cicrle[name] = Element_circle(name,types_in,types_out)
-
-	if is_circle:
-		model.last_circle_key = name
-	else:
-		model.last_method_key = name
-
-	return Process_result(model,[])
-
-
-# list item
-
-class Element_circle_method:
-	def __init__(self,name, in_types,out_types):
-		self.name = name
-		self.in_types = in_types
-		self.out_types = out_types
-
-
-def process_circle_method(line,line_number,model):
-	
-	while line[0] != '-' or line[0] != '*':
-		line = line[1:]
-	
-	line = line[1:]
-
-	circ_r = process_circle(line,line_number,model)
-
-	## append method to current circle
-	circ_r.model.elements_cicrle[circ_r.model.last_circle_key].methods.append(circ_r.model.elements_cicrle[circ_r.model.last_method_key])
-
-	return circ_r
-
-
-line_processors = [
-	Line_processor(process_type,"###"),
-	Line_processor(process_circle,"##"),
-	Line_processor(process_circle_method,['-','*']),
-]
-
-# returns dict: {"errors":[...],"model":{}}
-def parse(raw_str):
-	errors = []
-	model = Model()
-
-	str_lines = raw_str.split('\n')
-	
-	line_number = 1
-	#process lines
-	for line in str_lines:
-
-		# skip empty
-		if line == "":continue
-
-		# process coallo lines
-		process_result = False
-
-		for line_processor in line_processors:
-			process_result = line_processor.processor_method(line,line_number,model)
-			if isinstance(process_result,Process_result):
-				errors = errors + process_result.errors
-				model = process_result.model
+		# -/* list item branch
+		if line_without_whitespace.startswith('-') or line_without_whitespace.startswith('*'):
+			
+			if active_branch == False:
 				continue
 
-	line_number += 1
+			indicator = '*'
+			if line_without_whitespace.startswith('-'):
+				indicator = '-'
 
-	# check type parents declared correctly!
+			name = get_name(line,indicator)
 
-	return Process_result(model,errors)
+			elements['branches'][active_branch]['children'].append(template_branch(name,[]))
+
+			continue
+
+		# non-coallo line
+		active_branch = False
+
+	elements['branches'] = find_branch_children(elements['branches'])
+
+
+	return elements
