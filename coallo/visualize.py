@@ -43,9 +43,9 @@ px_item_width = px_item_line_width + px_item_ellipse_width
 
 def draw_branch_item(name,x,y,draw,first = False):
 	if first:
-		draw.ellipse((x,y,x + px_item_width,y + px_item_height), fill="white", outline="black")
+		draw.ellipse((x,y,x + px_item_ellipse_width,y + px_item_ellipse_height), fill="white", outline="black")
 	else:
-		draw.ellipse((x,y,x + px_item_width,y + px_item_height), fill="white", outline="black")
+		draw.ellipse((x,y,x + px_item_ellipse_width,y + px_item_ellipse_height), fill="white", outline="black")
 
 def recursive_draw_children(children, curr_x, curr_y, draw):
 
