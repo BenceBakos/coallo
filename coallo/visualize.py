@@ -1,74 +1,143 @@
 
-from PIL import Image,ImageDraw
+from PIL import Image,ImageDraw, ImageFont
 
 import math
 
-def recursive_depth(children,d):
+def recursive_longest_name(children,max_len):
 
-	if len(children) == 0:
-		return d
-
-	for ch in children:
-
-		r = recursive_depth(ch['children'],d)
-
-		if r > d:
-			d = r
-
-	return d + 1
-
-def recursive_child_sum(children,sum):
-
-	if len(children) == 0:return 1
+	if len(children) == 0:return 0
 
 	for ch in children:
-		sum += recursive_child_sum(ch['children'],sum)
+		if len(ch['name']) > max_len:
+			max_len = len(ch['name'])
 
-	return sum -1
+	recursive_res = recursive_longest_name(ch['children'],max_len)
+
+	if recursive_res > max_len:
+		max_len = recursive_res
+
+	return max_len
+
+def draw_branch_item(draw,name,x,y,width,height):
+	draw.ellipse((x,y,x + width,y + height), fill="white", outline="black")
+
+	text_x  = math.floor( (width - ( len(name) * px_char_width ) ) / 2 )
+	text_y = math.floor(height * 0.5) - px_char_height
+	draw.text((x + text_x,y + text_y),name,font=fnt,fill = "black")
 
 
+px_font_size = 13
+fnt = ImageFont.truetype('coallo/Roboto-Regular.ttf', px_font_size)
 
-filename = "visual.png"
+px_char_width =  math.floor(px_font_size * 0.5)
+px_char_height = math.floor(px_font_size * 0.8)
 
+longest_name = ""
 
-# BOUNDING BOX SIZES
-px_item_ellipse_height = 50
-px_item_line_height = 50
-px_item_height = px_item_line_height + px_item_ellipse_height
+px_ellipse_width = lambda: math.floor(longest_name * px_char_width) + 20
+px_ellipse_height = lambda: math.floor(px_ellipse_width() * 0.4) 
 
-px_item_ellipse_width = 50
-px_item_line_width = 50
-px_item_width = px_item_line_width + px_item_ellipse_width
+px_line_length = 10
 
+px_ellipse_padding = 20
 
-def draw_branch_item(name,x,y,draw,first = False):
-	if first:
-		draw.ellipse((x,y,x + px_item_ellipse_width,y + px_item_ellipse_height), fill="white", outline="black")
+def recursive_build_graph(branch,is_beginner, is_ending):
+	
+	is_beginner_local = is_beginner
+	is_ending_local = is_ending
+
+	children_images = []
+
+	width_max = 0
+
+	height_sum = 0
+
+	ch_count = 0
+
+	for ch in branch['children']:
+
+		is_beginner = ch_count == 0
+		is_ending   = ch_count == len(branch['children']) - 1
+
+		child_image = recursive_build_graph(ch,is_beginner,is_ending)
+		children_images.append(child_image)
+
+		# width maximum
+		if child_image.width > width_max:
+			width_max = child_image.width
+
+		# height sum
+		height_sum += child_image.height
+
+		ch_count += 1
+
+	image = None
+
+	if len(branch['children']) > 0:
+		width = px_ellipse_width() + px_ellipse_padding + width_max
+		height = height_sum
+		image = Image.new('RGB', (width, height), color = 'white')
+		draw = ImageDraw.Draw(image)
+
+		paste_x = px_ellipse_width() + px_ellipse_padding
+		paste_y = 0
+
+		for ch_img in children_images:
+			image.paste(ch_img,(paste_x,paste_y))
+			paste_y += ch_img.height
+
+		branch_x = 0
+		branch_y = math.floor((height/2) - (px_ellipse_height()/2))
+		
+		item_width_half = math.floor(px_ellipse_width() / 2)
+
+		line_start_x = 0
+		line_end_x = height
+
+		if is_beginner_local:
+			line_start_x = math.floor(height / 2)
+
+		if is_ending_local:
+			line_end_x = math.floor(height / 2)
+
+		draw.line( (item_width_half, line_start_x, item_width_half ,line_end_x), fill="black", width=1)
+
+		draw_branch_item(draw,branch['name'],branch_x,branch_y,px_ellipse_width(),px_ellipse_height())
+
 	else:
-		draw.ellipse((x,y,x + px_item_ellipse_width,y + px_item_ellipse_height), fill="white", outline="black")
+		width = px_ellipse_width() + px_ellipse_padding
+		height = px_ellipse_height() + (2 * px_line_length)
+		image = Image.new('RGB', (width, height), color = 'white')
+		draw = ImageDraw.Draw(image)
 
-def recursive_draw_children(children, curr_x, curr_y, draw):
+		branch_x = 0
+		branch_y = px_line_length
 
-	ch_count_half = math.floor(len(children))
+		width_half = math.floor(px_ellipse_width() / 2)
 
-	first_ch = True
+		line_start_x = 0
+		line_end_x = height
 
-	for ch in children:
+		if is_beginner_local:
+			line_start_x = math.floor(height / 2)
 
-		if first_ch:
-			draw_branch_item(ch['name'],curr_x,curr_y,draw,True)
-		else:
-			draw_branch_item(ch['name'],curr_x,curr_y,draw)
+		if is_ending_local:
+			line_end_x = math.floor(height / 2)
 
-		curr_y += px_item_height
+		draw.line( (width_half, line_start_x, width_half ,line_end_x), fill="black", width=1)
+		
+		draw_branch_item(draw,branch['name'],branch_x,branch_y,px_ellipse_width(),px_ellipse_height())
+				
 
+	return image
 
 
 
 
 def visualize_default(elements):
-	branches = elements['branches']
+	global longest_name
 
+	branches = elements['branches']
 	root = False
 	for (name,br) in branches.items():
 		if br['root']:
@@ -76,22 +145,10 @@ def visualize_default(elements):
 
 	if not root:
 		raise Exception("At least one root must exists!")
-
-	depth = recursive_depth(root['children'],0)
 	
-	# sum of children (height) 
-	children_sum = recursive_child_sum(root['children'],0)
+	longest_name = recursive_longest_name(root['children'],0)
+	if len(root['name']) > longest_name:
+		longest_name = len(root['name'])
 
-	#draw recursively
-	img_width  = depth * px_item_width + 200
-	img_height = children_sum * px_item_height + 200
-	print(img_width)
-	print(img_height)
-	print("----------")
-	img = Image.new('RGB', (img_width, img_height), color = 'white')
-
-	draw = ImageDraw.Draw(img)
-
-	recursive_draw_children(root['children'],math.floor(img_width * 0.01),math.floor(img_height * 0.01),draw)
-
-	img.save(filename)
+	
+	recursive_build_graph(root,True,True).save("visual.png")
