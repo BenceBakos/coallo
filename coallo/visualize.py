@@ -79,6 +79,7 @@ def recursive_build_graph(branch,is_beginner, is_ending):
 		image = Image.new('RGB', (width, height), color = 'white')
 		draw = ImageDraw.Draw(image)
 
+		
 		paste_x = px_ellipse_width() + px_ellipse_padding
 		paste_y = 0
 
@@ -99,6 +100,8 @@ def recursive_build_graph(branch,is_beginner, is_ending):
 
 		if is_ending_local:
 			line_end_x = math.floor(height / 2)
+		
+		# "curve"
 
 		draw.line( (item_width_half, line_start_x, item_width_half ,line_end_x), fill="black", width=1)
 
