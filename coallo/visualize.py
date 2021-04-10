@@ -102,7 +102,10 @@ def recursive_build_graph(branch,is_beginner, is_ending):
 			line_end_x = math.floor(height / 2)
 		
 		# "curve"
+		draw.line( (item_width_half, line_start_x, item_width_half ,10), fill="black", width=1)
+		draw.line( (item_width_half, 10, 3*item_width_half ,10), fill="black", width=1)
 
+		# connector line
 		draw.line( (item_width_half, line_start_x, item_width_half ,line_end_x), fill="black", width=1)
 
 		draw_branch_item(draw,branch['name'],branch_x,branch_y,px_ellipse_width(),px_ellipse_height())
