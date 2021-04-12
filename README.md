@@ -71,6 +71,9 @@ Multiple root elements can exists!
  - at_the_local_store
 
 ```
+
+![Result](visual.png "Result")
+
 Estimation is hard! Do it whit caution!
 Details are everything, you write your programe line by line,
 not funciton after fuction.
