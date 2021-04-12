@@ -38,16 +38,16 @@ def recursive_color_to_branch(branch):
 
 def recursive_longest_name(children,max_len):
 
-	if len(children) == 0:return 0
+	if len(children) == 0:return max_len
 
 	for ch in children:
 		if len(ch['name']) > max_len:
 			max_len = len(ch['name'])
 
-	recursive_res = recursive_longest_name(ch['children'],max_len)
+		recursive_res = recursive_longest_name(ch['children'],max_len)
 
-	if recursive_res > max_len:
-		max_len = recursive_res
+		if recursive_res > max_len:
+			max_len = recursive_res
 
 	return max_len
 
@@ -217,9 +217,8 @@ def visualize_default(elements):
 	for (name,br) in branches.items():
 		if br['root']:
 			root = br
-			longest_name = recursive_longest_name(root['children'],0)
-			if len(root['name']) > longest_name:
-				longest_name = len(root['name'])
+			longest_name = recursive_longest_name(root['children'],len(root['name']))
+			print(longest_name)
 
 			img_res = recursive_build_graph(root,True,True)
 
