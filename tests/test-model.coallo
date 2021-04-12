@@ -20,6 +20,7 @@
  - 2.4
  - 2.5
  - 2.6
+ - 1.1
 
 ### 3
  - 3.1
@@ -35,5 +36,27 @@
  - 3.3.3
  - 3.3.4
 
+### so
+ - long
+
 ### 3.3.4
  - so
+
+###subscraction
+ - before_root
+ - eat_banana
+
+
+
+## other_root
+ - addition
+ - subscraction
+ - eating
+
+### eating
+ - banana
+ - apple
+ - my_mind
+
+### eat_banana
+ - eating
