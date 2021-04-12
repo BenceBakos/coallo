@@ -1,6 +1,7 @@
 
 from pathlib import Path
 import sys
+import os
 
 def load_file():
 	args = sys.argv
@@ -26,13 +27,19 @@ import json
 def main():
 
 	# load file content
+	text_raw = load_file()
+
+	# working directory to coallo's folder 
+	abspath = os.path.abspath(__file__)
+	dname = os.path.dirname(abspath)
+	os.chdir(dname+ "/..")
 
 	# parse file
 	from coallo.parse import parse_file
 
-	elements = parse_file(load_file())
+	elements = parse_file(text_raw)
 
-	print(json.dumps(elements))
+	#print(json.dumps(elements))
 
 	# visualize
 

@@ -205,8 +205,6 @@ def visualize_default(elements):
 	for (name,br) in branches.items():
 		recursive_color_to_branch(br)
 	
-	print(color_to_branch)
-
 	root = False
 
 	root_images = []
@@ -218,7 +216,6 @@ def visualize_default(elements):
 		if br['root']:
 			root = br
 			longest_name = recursive_longest_name(root['children'],len(root['name']))
-			print(longest_name)
 
 			img_res = recursive_build_graph(root,True,True)
 
@@ -243,3 +240,4 @@ def visualize_default(elements):
 		last_x += root_img.width + px_roots_padding
 
 	result_img.save("visual.png")
+	result_img.show()
